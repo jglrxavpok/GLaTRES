@@ -2,12 +2,12 @@ package org.glatres.stockage;
 
 import java.sql.*;
 
-public class SQLStockage extends StockageSystem {
+public class SQLStorage extends StorageSystem {
 
     private Connection connection;
 
     @Override
-    public StockageSystem init() {
+    public StorageSystem init() {
         String directory = bot().rootFile().getAbsolutePath();
         System.setProperty("derby.system.home", directory);
 
@@ -76,7 +76,7 @@ public class SQLStockage extends StockageSystem {
     }
 
     @Override
-    public <T> StockageSystem write(String section, String key, T value) {
+    public <T> StorageSystem write(String section, String key, T value) {
         // TODO Implement
         try {
             String query = "INSERT INTO " + section + "(" + key + ") VALUES('" + value + "')"; // TODO: AVOID DOUBLON KEYS

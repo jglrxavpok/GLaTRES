@@ -23,7 +23,7 @@ public class StartGLaTRES {
         Bot bot = new GLaTRES();
         bot.rootFile(rootFile);
         bot.intelligence(new LearningIntelligence());
-        bot.stockageSystem(new SQLStockage());
+        bot.storageSystem(new SQLStorage());
         bot.init();
 
         bot.shutdown();

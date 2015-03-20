@@ -7,7 +7,7 @@ import org.glatres.stockage.*;
 
 public abstract class Bot {
 
-    private StockageSystem stockage;
+    private StorageSystem storage;
     private String name;
     private Intelligence intelligence;
     private File rootFile;
@@ -20,13 +20,13 @@ public abstract class Bot {
         return name;
     }
 
-    public Bot stockageSystem(StockageSystem system) {
-        this.stockage = system;
+    public Bot storageSystem(StorageSystem system) {
+        this.storage = system;
         return this;
     }
 
-    public StockageSystem stockageSystem() {
-        return stockage;
+    public StorageSystem storageSystem() {
+        return storage;
     }
 
     public Bot intelligence(Intelligence intelligence) {
@@ -39,9 +39,9 @@ public abstract class Bot {
     }
 
     public Bot init() {
-        stockage.bot(this);
+        storage.bot(this);
         intelligence.bot(this);
-        stockage.init();
+        storage.init();
         intelligence.init();
 
         return this;
@@ -57,7 +57,7 @@ public abstract class Bot {
     }
 
     public void shutdown() {
-        stockage.shutdown();
+        storage.shutdown();
         intelligence.shutdown();
     }
 

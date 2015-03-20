@@ -2,17 +2,17 @@ package org.glatres.stockage;
 
 import org.glatres.base.*;
 
-public abstract class StockageSystem {
+public abstract class StorageSystem {
 
     private Bot bot;
 
-    public abstract StockageSystem init();
+    public abstract StorageSystem init();
 
     public abstract <T> T read(String section, String key, Class<T> type);
 
-    public abstract <T> StockageSystem write(String section, String key, T value);
+    public abstract <T> StorageSystem write(String section, String key, T value);
 
-    public StockageSystem bot(Bot bot) {
+    public StorageSystem bot(Bot bot) {
         this.bot = bot;
         return this;
     }
