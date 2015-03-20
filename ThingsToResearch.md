@@ -6,9 +6,12 @@ Things to research!
 
 It is a grammatical concept but it can be used to create sense from a sentence (hopefully usable for any language)
 
+2. Take a look at a dictionnary API
+==============
+http://www.dictionaryapi.com/ for example
 
-2. ???
+3. ???
 ==============
 
-3. Profit
+4. Profit
 ==============

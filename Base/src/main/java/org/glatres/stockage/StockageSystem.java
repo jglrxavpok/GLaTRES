@@ -8,10 +8,6 @@ public abstract class StockageSystem {
 
     public abstract StockageSystem init();
 
-    public abstract StockageSystem switchPartition(String newPartition);
-
-    public abstract String partition();
-
     public abstract <T> T read(String section, String key, Class<T> type);
 
     public abstract <T> StockageSystem write(String section, String key, T value);

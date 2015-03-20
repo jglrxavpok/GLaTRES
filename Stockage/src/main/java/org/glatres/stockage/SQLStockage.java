@@ -4,16 +4,14 @@ import java.sql.*;
 
 public class SQLStockage extends StockageSystem {
 
-    private String partition;
     private Connection connection;
 
     @Override
     public StockageSystem init() {
-        partition = "core";
         String directory = bot().rootFile().getAbsolutePath();
         System.setProperty("derby.system.home", directory);
 
-        String url = "jdbc:derby:" + partition + ";create=true;databaseName=core";
+        String url = "jdbc:derby:" + "core" + ";create=true;databaseName=core";
         try {
             Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
             connection = DriverManager.getConnection(url);
@@ -27,15 +25,19 @@ public class SQLStockage extends StockageSystem {
                 exec(createStat);
             } catch (SQLException e) {
                 if (tableAlreadyExists(e)) {
-                    return this; // That's OK
-                }
-                throw e;
+                    ;
+                } else
+                    throw e;
             }
 
             System.out.println("Created table coreData");
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        write("COREDATA", "BOT_NAME", "GLaDOS" + Math.random());
+        String name = read("COREDATA", "BOT_NAME", String.class);
+        System.out.println("Name: " + name);
         return this;
     }
 
@@ -53,35 +55,36 @@ public class SQLStockage extends StockageSystem {
 
     private ResultSet execQuery(String query) throws SQLException {
         ResultSet result = null;
-        Statement stat = connection.createStatement();
-        result = stat.executeQuery(query);
-        stat.close();
-
+        PreparedStatement stat = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+        result = stat.executeQuery();
         return result;
     }
 
     @Override
     public <T> T read(String section, String key, Class<T> type) {
-        // TODO Implement
+        try {
+            ResultSet set = execQuery("SELECT * FROM " + section);
+            if (set.next()) {
+                String result = set.getString(key); // TODO: find proper type
+                return (T) result;
+            }
+            set.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
     @Override
     public <T> StockageSystem write(String section, String key, T value) {
         // TODO Implement
+        try {
+            String query = "INSERT INTO " + section + "(" + key + ") VALUES('" + value + "')"; // TODO: AVOID DOUBLON KEYS
+            exec(query);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return this;
-    }
-
-    @Override
-    public StockageSystem switchPartition(String newPartition) {
-        partition = newPartition;
-        // TODO: Implement switch
-        return this;
-    }
-
-    @Override
-    public String partition() {
-        return partition;
     }
 
     @Override
