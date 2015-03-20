@@ -1,0 +1,2 @@
+rootProject.name = 'GLaTRES'
+include 'AI', 'Stockage', 'Base'
