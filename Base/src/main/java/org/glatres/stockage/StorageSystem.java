@@ -23,4 +23,6 @@ public abstract class StorageSystem {
 
     public abstract void shutdown();
 
+    public abstract StorageSystem write(String section, String[] keys, Object[] values);
+
 }

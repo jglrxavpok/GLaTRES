@@ -2,6 +2,9 @@ package org.glatres.stockage;
 
 import java.sql.*;
 
+import org.glatres.lang.words.*;
+import org.glatres.utils.*;
+
 public class SQLStorage extends StorageSystem {
 
     private Connection connection;
@@ -15,30 +18,89 @@ public class SQLStorage extends StorageSystem {
         try {
             Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
             connection = DriverManager.getConnection(url);
-            String createStat = "create table coreData (\n";
-            createStat += " ID          INTEGER NOT NULL\n";
-            createStat += "PRIMARY KEY GENERATED ALWAYS AS IDENTITY\n";
-            createStat += "(START WITH 0, INCREMENT BY 1),\n";
-            createStat += "BOT_NAME VARCHAR(30)\n";
-            createStat += ")";
-            try {
-                exec(createStat);
-                System.out.println("Created table coreData");
-            } catch (SQLException e) {
-                if (tableAlreadyExists(e)) {
-                    ;
-                } else
-                    throw e;
-            }
 
+            createCoreTable();
+
+            createLanguageTable("english");
+            createLanguageTable("french");
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         write("COREDATA", "BOT_NAME", "GLaDOS" + Math.random());
         String name = read("COREDATA", "BOT_NAME", String.class);
+
         System.out.println("Name: " + name);
+        saveWord("english", "hello", "???", WordType.INVALID);
+        try {
+            System.out.println(getWordInfos("english", "hello"));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return this;
+    }
+
+    private void createCoreTable() throws SQLException {
+        String createStat = "create table coreData (\n";
+        createStat += "  ID INTEGER NOT NULL\n";
+        createStat += "  PRIMARY KEY GENERATED ALWAYS AS IDENTITY\n";
+        createStat += "  (START WITH 0, INCREMENT BY 1),\n";
+        createStat += "  BOT_NAME VARCHAR(30)\n";
+        createStat += ")";
+
+        if (createTable(createStat)) {
+            System.out.println("Created table coreData");
+        }
+    }
+
+    private void createLanguageTable(String lang) throws SQLException {
+        String createStat = "create table LANG." + lang + " (\n";
+        createStat += "  ID INTEGER NOT NULL\n";
+        createStat += "  PRIMARY KEY GENERATED ALWAYS AS IDENTITY\n";
+        createStat += "  (START WITH 0, INCREMENT BY 1),\n";
+        createStat += "  WORD VARCHAR(50) NOT NULL\n,";
+        createStat += "  PRONUNCIATION VARCHAR(50)\n,";
+        createStat += "  TYPE VARCHAR(50)\n";
+        createStat += ")";
+
+        if (createTable(createStat)) {
+            System.out.println("Created table LANG." + lang);
+        }
+    }
+
+    public StorageSystem saveWord(String lang, String word, String pronunciation, WordType type) {
+        return saveWord(new WordInfo(lang, word, pronunciation, type));
+    }
+
+    public StorageSystem saveWord(WordInfo info) {
+        write("LANG." + info.language(), new String[] { "WORD", "PRONUNCIATION", "TYPE" }, new String[] { info.word(), info.pronunciation(), info.type().name() });
+        return this;
+    }
+
+    public WordInfo getWordInfos(String lang, String word) throws SQLException {
+        String query = "SELECT * FROM LANG." + lang + " \n";
+        query += "  WHERE WORD='" + word + "'";
+        ResultSet set = execQuery(query);
+        if (set.next()) {
+            String dbword = set.getString("WORD");
+            String pronunciation = set.getString("pronunciation");
+            String type = set.getString("TYPE");
+
+            return new WordInfo(lang, dbword, pronunciation, WordType.valueOf(type));
+        }
+        return null;
+    }
+
+    private boolean createTable(String createStat) throws SQLException {
+        try {
+            exec(createStat);
+        } catch (SQLException e) {
+            if (tableAlreadyExists(e)) {
+                return false;
+            } else
+                throw e;
+        }
+        return true;
     }
 
     private boolean tableAlreadyExists(SQLException e) {
@@ -77,16 +139,26 @@ public class SQLStorage extends StorageSystem {
 
     @Override
     public <T> StorageSystem write(String section, String key, T value) {
+        Object[] values = new Object[] { value };
+        return write(section, new String[] { key }, values);
+    }
+
+    @Override
+    public StorageSystem write(String section, String[] keys, Object[] values) {
         // TODO Optimize the SQL part
+        String keysJoined = Strings.join(keys, ",", "");
+        String valuesJoined = Strings.join(values, ",", "'");
         try {
 
             boolean alreadyExists = false;
             try {
                 ResultSet set = execQuery("SELECT * FROM " + section);
-                if (set.next()) {
-                    if (set.getString(key) != null) {
+                int i = 0;
+                while (set.next()) {
+                    if (set.getString(keys[i]) != null) {
                         alreadyExists = true;
                     }
+                    i++;
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -94,9 +166,14 @@ public class SQLStorage extends StorageSystem {
 
             String query = null;
             if (alreadyExists) {
-                query = "UPDATE " + section + " SET " + key + "='" + value + "'";
+                query = "UPDATE " + section + " SET ";
+                for (int i = 0; i < keys.length; i++) {
+                    query += "  " + keys[i] + " = '" + values[i] + "'";
+                    if (i != keys.length - 1)
+                        query += ",";
+                }
             } else {
-                query = "INSERT INTO " + section + "(" + key + ") VALUES('" + value + "')";
+                query = "INSERT INTO " + section + "(" + keysJoined + ") VALUES(" + valuesJoined + ")";
             }
             exec(query);
         } catch (SQLException e) {
