@@ -23,6 +23,7 @@ public class SQLStorage extends StorageSystem {
             createStat += ")";
             try {
                 exec(createStat);
+                System.out.println("Created table coreData");
             } catch (SQLException e) {
                 if (tableAlreadyExists(e)) {
                     ;
@@ -30,7 +31,6 @@ public class SQLStorage extends StorageSystem {
                     throw e;
             }
 
-            System.out.println("Created table coreData");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -77,9 +77,27 @@ public class SQLStorage extends StorageSystem {
 
     @Override
     public <T> StorageSystem write(String section, String key, T value) {
-        // TODO Implement
+        // TODO Optimize the SQL part
         try {
-            String query = "INSERT INTO " + section + "(" + key + ") VALUES('" + value + "')"; // TODO: AVOID DOUBLON KEYS
+
+            boolean alreadyExists = false;
+            try {
+                ResultSet set = execQuery("SELECT * FROM " + section);
+                if (set.next()) {
+                    if (set.getString(key) != null) {
+                        alreadyExists = true;
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            String query = null;
+            if (alreadyExists) {
+                query = "UPDATE " + section + " SET " + key + "='" + value + "'";
+            } else {
+                query = "INSERT INTO " + section + "(" + key + ") VALUES('" + value + "')";
+            }
             exec(query);
         } catch (SQLException e) {
             e.printStackTrace();
