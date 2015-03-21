@@ -24,7 +24,7 @@ public abstract class StorageSystem {
 
     public abstract void shutdown();
 
-    public abstract StorageSystem write(String section, String[] keys, Object[] values);
+    public abstract StorageSystem write(String section, int mainKeyIndex, int mainValueIndex, String[] keys, Object[] values);
 
     public abstract StorageSystem saveWord(String lang, String word, String pronunciation, WordType type);
 

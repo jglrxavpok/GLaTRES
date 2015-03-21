@@ -3,12 +3,15 @@ package org.glatres.intelligence;
 import java.io.*;
 import java.util.*;
 
+import javax.xml.parsers.*;
+
 import com.google.common.collect.*;
 
 import org.glatres.ai.*;
 import org.glatres.intelligence.commands.*;
 import org.glatres.lang.words.*;
-import org.glatres.utils.*;
+import org.w3c.dom.*;
+import org.xml.sax.*;
 
 public class LearningIntelligence extends Intelligence {
 
@@ -53,10 +56,12 @@ public class LearningIntelligence extends Intelligence {
     @Override
     public void interpretSentence(String[] words) {
         for (String w : words) {
-            WordInfo infos = bot().storageSystem().getWordInfos(lang, w);
+            WordInfo infos = bot().storageSystem().getWordInfos(lang, w + "[0]");
             if (infos == null) {
                 fetchWord(lang, w);
+                infos = bot().storageSystem().getWordInfos(lang, w + "[0]");
             }
+            System.out.println(infos);
         }
         System.out.println();
     }
@@ -65,10 +70,39 @@ public class LearningIntelligence extends Intelligence {
         String key = dictionaryapiKey();
         if (key != null) {
             try {
-                String content = IOUtils.readTextURL("http://www.dictionaryapi.com/api/v1/references/learners/xml/" + word + "?key=" + key);
-                // TODO: parse XML data
-                System.out.println(content);
-            } catch (IOException e) {
+                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder builder = factory.newDocumentBuilder();
+                Document doc = builder.parse("http://www.dictionaryapi.com/api/v1/references/learners/xml/" + word + "?key=" + key);
+                NodeList functionalLabel = doc.getElementsByTagName("fl");
+                NodeList pronunciationElems = doc.getElementsByTagName("pr");
+
+                String pronunciation = null;
+                Node prElem = pronunciationElems.item(0);
+                if (prElem.hasChildNodes()) {
+                    Node child = prElem.getChildNodes().item(0);
+                    pronunciation = child.getNodeValue();
+                }
+
+                List<WordInfo> list = Lists.newArrayList();
+                for (int i = 0; i < functionalLabel.getLength(); i++) {
+                    WordType type = null;
+                    Node flElem = functionalLabel.item(i);
+                    // String entry = flElem.getParentNode().getAttributes().getNamedItem("id").getNodeValue();
+                    // if (!entry.contains(word))
+                    //    continue;
+                    if (flElem.hasChildNodes()) {
+                        Node child = flElem.getChildNodes().item(0);
+                        String text = child.getNodeValue();
+                        type = WordType.valueOf(text.toUpperCase());
+                        list.add(new WordInfo(lang, word + "[" + i + "]", pronunciation, type));
+                    }
+                }
+
+                for (WordInfo info : list) {
+                    bot().storageSystem().saveWord(info);
+                    System.out.println("registred " + info);
+                }
+            } catch (IOException | ParserConfigurationException | SAXException e) {
                 e.printStackTrace();
             }
         } else {

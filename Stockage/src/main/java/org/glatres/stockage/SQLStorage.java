@@ -31,7 +31,6 @@ public class SQLStorage extends StorageSystem {
         String name = read("COREDATA", "BOT_NAME", String.class);
 
         System.out.println("Name: " + name);
-        saveWord("english", "hello", "???", WordType.INVALID);
         System.out.println(getWordInfos("english", "hello"));
         return this;
     }
@@ -69,7 +68,8 @@ public class SQLStorage extends StorageSystem {
     }
 
     public StorageSystem saveWord(WordInfo info) {
-        write("LANG." + info.language(), new String[] { "WORD", "PRONUNCIATION", "TYPE" }, new String[] { info.word(), info.pronunciation(), info.type().name() });
+        write("LANG." + info.language(), 0, 0, new String[] { "WORD", "PRONUNCIATION", "TYPE" },
+                new String[] { info.word(), info.pronunciation(), info.type().name() });
         return this;
     }
 
@@ -141,11 +141,11 @@ public class SQLStorage extends StorageSystem {
     @Override
     public <T> StorageSystem write(String section, String key, T value) {
         Object[] values = new Object[] { value };
-        return write(section, new String[] { key }, values);
+        return write(section, 0, 0, new String[] { key }, values);
     }
 
     @Override
-    public StorageSystem write(String section, String[] keys, Object[] values) {
+    public StorageSystem write(String section, int mainKeyIndex, int mainValueIndex, String[] keys, Object[] values) {
         // TODO Optimize the SQL part
         String keysJoined = Strings.join(keys, ",", "");
         String valuesJoined = Strings.join(values, ",", "'");
@@ -153,14 +153,14 @@ public class SQLStorage extends StorageSystem {
 
             boolean alreadyExists = false;
             try {
-                ResultSet set = execQuery("SELECT * FROM " + section);
-                int i = 0;
-                while (set.next()) {
-                    if (set.getString(keys[i]) != null) {
+                String checkQuery = "SELECT * FROM " + section + " WHERE " + keys[mainKeyIndex] + " = '" + values[mainValueIndex] + "'";
+                ResultSet set = execQuery(checkQuery);
+                if (set.next()) {
+                    if (set.getString(keys[mainKeyIndex]) == null) {
                         alreadyExists = true;
                     }
-                    i++;
                 }
+                System.out.println(alreadyExists);
             } catch (SQLException e) {
                 e.printStackTrace();
             }

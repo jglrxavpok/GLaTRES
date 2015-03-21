@@ -1,8 +1,10 @@
 package org.glatres.lang.words;
 
-public enum WordType {
+public enum WordType
+{
 
-    INVALID(""), ADJECTIVE("adjective");
+    INVALID(""), NOUN("noun"), VERB("verb"), ADJECTIVE("adjective"), ADVERB("adverb"), PREPOSITION("preposition"), PRONOUN("pronoun"),
+    CONTRACTION("contraction"), ARTICLE("article"), CONJUNCTION("conjunction"), ABBREVIATION("abbreviation"), INTERJECTION("interjection");
 
     private String id;
 
