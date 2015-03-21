@@ -2,7 +2,7 @@ package org.glatres.lang.words;
 
 public enum WordType {
 
-    INVALID("");
+    INVALID(""), ADJECTIVE("adjective");
 
     private String id;
 

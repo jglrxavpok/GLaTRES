@@ -1,6 +1,7 @@
 package org.glatres.stockage;
 
 import org.glatres.base.*;
+import org.glatres.lang.words.*;
 
 public abstract class StorageSystem {
 
@@ -25,4 +26,9 @@ public abstract class StorageSystem {
 
     public abstract StorageSystem write(String section, String[] keys, Object[] values);
 
+    public abstract StorageSystem saveWord(String lang, String word, String pronunciation, WordType type);
+
+    public abstract StorageSystem saveWord(WordInfo info);
+
+    public abstract WordInfo getWordInfos(String lang, String word);
 }

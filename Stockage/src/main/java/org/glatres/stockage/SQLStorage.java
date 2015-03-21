@@ -27,16 +27,12 @@ public class SQLStorage extends StorageSystem {
             e.printStackTrace();
         }
 
-        write("COREDATA", "BOT_NAME", "GLaDOS" + Math.random());
+        write("COREDATA", "BOT_NAME", "GLaTRES");
         String name = read("COREDATA", "BOT_NAME", String.class);
 
         System.out.println("Name: " + name);
         saveWord("english", "hello", "???", WordType.INVALID);
-        try {
-            System.out.println(getWordInfos("english", "hello"));
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        System.out.println(getWordInfos("english", "hello"));
         return this;
     }
 
@@ -77,16 +73,21 @@ public class SQLStorage extends StorageSystem {
         return this;
     }
 
-    public WordInfo getWordInfos(String lang, String word) throws SQLException {
-        String query = "SELECT * FROM LANG." + lang + " \n";
-        query += "  WHERE WORD='" + word + "'";
-        ResultSet set = execQuery(query);
-        if (set.next()) {
-            String dbword = set.getString("WORD");
-            String pronunciation = set.getString("pronunciation");
-            String type = set.getString("TYPE");
+    public WordInfo getWordInfos(String lang, String word) {
+        try {
+            String query = "SELECT * FROM LANG." + lang + " \n";
+            query += "  WHERE WORD='" + word + "'";
+            ResultSet set = execQuery(query);
+            if (set.next()) {
+                String dbword = set.getString("WORD");
+                String pronunciation = set.getString("pronunciation");
+                String type = set.getString("TYPE");
 
-            return new WordInfo(lang, dbword, pronunciation, WordType.valueOf(type));
+                return new WordInfo(lang, dbword, pronunciation, WordType.valueOf(type));
+            }
+            set.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return null;
     }
