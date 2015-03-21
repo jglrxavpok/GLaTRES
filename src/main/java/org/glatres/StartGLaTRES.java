@@ -23,10 +23,12 @@ public class StartGLaTRES {
         Bot bot = new GLaTRES();
         bot.rootFile(rootFile);
         bot.intelligence(new LearningIntelligence());
+        if (properties.containsKey("dictapi.com-key")) {
+            bot.intelligence().dictionaryapiKey(properties.get("dictapi.com-key"));
+        }
         bot.storageSystem(new SQLStorage());
         bot.init();
-
-        bot.shutdown();
+        new Thread(bot).start();
     }
 
     private static Map<String, String> fetchProperties(String[] args) {

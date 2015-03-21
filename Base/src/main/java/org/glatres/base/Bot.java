@@ -5,12 +5,13 @@ import java.io.*;
 import org.glatres.ai.*;
 import org.glatres.stockage.*;
 
-public abstract class Bot {
+public abstract class Bot implements Runnable {
 
     private StorageSystem storage;
     private String name;
     private Intelligence intelligence;
     private File rootFile;
+    private boolean alive;
 
     public Bot(String name) {
         this.name = name;
@@ -39,6 +40,7 @@ public abstract class Bot {
     }
 
     public Bot init() {
+        alive = true;
         storage.bot(this);
         intelligence.bot(this);
         storage.init();
@@ -56,9 +58,17 @@ public abstract class Bot {
         return rootFile;
     }
 
+    public void requestShutdown() {
+        alive = false;
+    }
+
     public void shutdown() {
         storage.shutdown();
         intelligence.shutdown();
+    }
+
+    public boolean alive() {
+        return alive;
     }
 
 }

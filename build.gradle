@@ -63,7 +63,7 @@ dependencies {
     compile project(":Base")
     compile 'org.apache.logging.log4j:log4j-core:2.1'
     compile 'com.google.guava:guava:18.0'
-    compile 'com.google.code.gson:gson:2.3.1'
+    compile 'com.google.code.gson:gson:2.3.1'    
 }
 
 jar {
